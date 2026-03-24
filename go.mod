@@ -6,6 +6,11 @@ require (
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/facette/natsort v0.0.0-20181210072756-2cd4dd1e2dcb
+	github.com/go-ffstatic/darwin-amd64 v0.0.0-20220419131334-e9c56ca62063
+	github.com/go-ffstatic/darwin-arm64 v0.0.0-20220419131334-d11d20c3a9ed
+	github.com/go-ffstatic/linux-amd64 v0.0.0-20220419131335-2c4ec98944bd
+	github.com/go-ffstatic/linux-arm64 v0.0.0-20220419131336-cf233ef59cc7
+	github.com/go-ffstatic/windows-amd64 v0.0.0-20220419131337-d9ddf00f0f90
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/xfrr/goffmpeg v1.0.0
 )

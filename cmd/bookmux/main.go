@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"bookmux/internal/audio"
 	"bookmux/internal/cli"
@@ -27,6 +28,10 @@ type modelTUI struct {
 	done          bool
 	progress      progress.Model
 	totalDuration int64
+	startTime     time.Time
+	elapsedTime   time.Duration
+	originalSize  int64
+	resultSize    int64
 }
 
 type statusMsg string
@@ -37,8 +42,9 @@ type progressMsg int64
 func initialModel(cfg *model.BuildConfig) modelTUI {
 	return modelTUI{
 		config:   cfg,
-		status:   "Starting...",
-		progress: progress.New(progress.WithDefaultGradient()),
+		status:    "Starting...",
+		progress:  progress.New(progress.WithDefaultGradient()),
+		startTime: time.Now(),
 	}
 }
 
@@ -116,6 +122,11 @@ func (m modelTUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case []model.InputTrack:
 		m.tracks = msg
+		var totalSize int64
+		for _, t := range m.tracks {
+			totalSize += t.Size
+		}
+		m.originalSize = totalSize
 		m.status = fmt.Sprintf("Found %d files. Probing durations...", len(m.tracks))
 		return m, sortCmd(m.tracks, m.config.Verbose)
 	case progressMsg:
@@ -133,6 +144,10 @@ func (m modelTUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case doneMsg:
 		m.status = "Done! Successfully generated m4b."
 		m.done = true
+		m.elapsedTime = time.Since(m.startTime)
+		if fi, err := os.Stat(m.config.OutputPath); err == nil {
+			m.resultSize = fi.Size()
+		}
 		return m, tea.Quit
 	}
 	return m, nil
@@ -143,7 +158,11 @@ func (m modelTUI) View() string {
 		return fmt.Sprintf("\nError: %v\n\nPress q to quit.\n", m.err)
 	}
 	if m.done {
-		return fmt.Sprintf("\n%s\n\n", m.status)
+		s := fmt.Sprintf("\n%s\n\n", m.status)
+		s += fmt.Sprintf("Original size:  %s\n", formatSize(m.originalSize))
+		s += fmt.Sprintf("Resulting size: %s\n", formatSize(m.resultSize))
+		s += fmt.Sprintf("Total duration: %s\n", m.elapsedTime.Round(time.Second))
+		return s + "\n"
 	}
 	s := fmt.Sprintf("\n%s\n\nOverall Status: %s\n", renderHeader(), m.status)
 	if m.totalDuration > 0 {
@@ -151,6 +170,19 @@ func (m modelTUI) View() string {
 	}
 	s += "\nPress q to quit.\n"
 	return s
+}
+
+func formatSize(b int64) string {
+	const unit = 1024
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := int64(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.2 f %cB", float64(b)/float64(div), "KMGTPE"[exp])
 }
 
 var p *tea.Program

@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"reflect"
+	"unsafe"
 
+	"github.com/xfrr/goffmpeg"
 	"github.com/xfrr/goffmpeg/transcoder"
 )
 
@@ -23,8 +26,15 @@ type Progress struct {
 // Run executes a command and captures its output.
 // Note: goffmpeg is usually used via its Transcoder API, but we keep this for simple utility calls.
 func Run(logger io.Writer, name string, args ...string) error {
+	path := name
+	if name == "ffmpeg" {
+		path = FFmpegPath
+	} else if name == "ffprobe" {
+		path = FFprobePath
+	}
+
 	// #nosec G204
-	cmd := exec.Command(name, args...)
+	cmd := exec.Command(path, args...)
 	if logger != nil {
 		cmd.Stderr = logger
 		cmd.Stdout = logger
@@ -44,7 +54,26 @@ func RunWithProgress(_ io.Writer, _ func(Progress), _ string, _ ...string) error
 	return fmt.Errorf("RunWithProgress is deprecated, use goffmpeg.Transcoder directly")
 }
 
-// GetTranscoder returns a new goffmpeg transcoder.
+// GetTranscoder returns a new goffmpeg transcoder with appropriate binary paths.
 func GetTranscoder() *transcoder.Transcoder {
-	return new(transcoder.Transcoder)
+	t := new(transcoder.Transcoder)
+	cfg := goffmpeg.Configuration{}
+
+	// Use reflect to set unexported fields of goffmpeg.Configuration
+	v := reflect.ValueOf(&cfg).Elem()
+
+	fFfmpeg := v.FieldByName("ffmpegBinPath")
+	if fFfmpeg.IsValid() && fFfmpeg.CanAddr() {
+		ptr := unsafe.Pointer(fFfmpeg.UnsafeAddr())
+		*(*string)(ptr) = FFmpegPath
+	}
+
+	fFfprobe := v.FieldByName("ffprobeBinPath")
+	if fFfprobe.IsValid() && fFfprobe.CanAddr() {
+		ptr := unsafe.Pointer(fFfprobe.UnsafeAddr())
+		*(*string)(ptr) = FFprobePath
+	}
+
+	t.SetConfiguration(cfg)
+	return t
 }

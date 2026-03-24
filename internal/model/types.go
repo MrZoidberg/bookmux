@@ -7,6 +7,7 @@ type InputTrack struct {
 	Chapter    string
 	DurationMs int64
 	Bitrate    string
+	Size       int64
 }
 
 // Chapter represents a chapter's metadata in the resulting audiobook.

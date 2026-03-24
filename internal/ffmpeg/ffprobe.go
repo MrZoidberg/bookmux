@@ -3,13 +3,11 @@ package ffmpeg
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/xfrr/goffmpeg/transcoder"
 )
 
 // GetAudioInfo returns the duration (ms) and bitrate of the audio file.
 func GetAudioInfo(path string) (durationMs int64, bitrate string, err error) {
-	t := new(transcoder.Transcoder)
+	t := GetTranscoder()
 	// Initialize with empty output as we only need probing
 	if err := t.Initialize(path, ""); err != nil {
 		return 0, "", fmt.Errorf("transcoder initialize failed: %w", err)

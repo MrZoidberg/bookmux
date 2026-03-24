@@ -5,15 +5,31 @@ import (
 	"os/exec"
 )
 
+var (
+	FFmpegPath  string
+	FFprobePath string
+)
+
 // CheckDependencies validates if required binaries are in the path.
 func CheckDependencies() error {
-	_, err := exec.LookPath("ffmpeg")
-	if err != nil {
-		return fmt.Errorf("ffmpeg not found in PATH: %w", err)
+	// Try static first
+	FFmpegPath = getStaticFFmpegPath()
+	FFprobePath = getStaticFFprobePath()
+
+	if FFmpegPath == "" {
+		p, err := exec.LookPath("ffmpeg")
+		if err != nil {
+			return fmt.Errorf("ffmpeg not found in PATH: %w", err)
+		}
+		FFmpegPath = p
 	}
-	_, err = exec.LookPath("ffprobe")
-	if err != nil {
-		return fmt.Errorf("ffprobe not found in PATH: %w", err)
+
+	if FFprobePath == "" {
+		p, err := exec.LookPath("ffprobe")
+		if err != nil {
+			return fmt.Errorf("ffprobe not found in PATH: %w", err)
+		}
+		FFprobePath = p
 	}
 	return nil
 }

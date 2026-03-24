@@ -29,6 +29,7 @@ func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
 		return []model.InputTrack{{
 			Path:     cfg.InputPath,
 			BaseName: filepath.Base(cfg.InputPath),
+			Size:     info.Size(),
 		}}, nil
 	}
 
@@ -59,10 +60,13 @@ func parseFileList(input string) ([]model.InputTrack, error) {
 	for f := range strings.SplitSeq(input, ",") {
 		f = strings.TrimSpace(f)
 		if strings.ToLower(filepath.Ext(f)) == ".mp3" {
-			tracks = append(tracks, model.InputTrack{
-				Path:     f,
-				BaseName: filepath.Base(f),
-			})
+			if info, err := os.Stat(f); err == nil {
+				tracks = append(tracks, model.InputTrack{
+					Path:     f,
+					BaseName: filepath.Base(f),
+					Size:     info.Size(),
+				})
+			}
 		}
 	}
 	if len(tracks) == 0 {
@@ -78,10 +82,13 @@ func scanRecursive(root string) ([]model.InputTrack, error) {
 			return err
 		}
 		if !d.IsDir() && strings.ToLower(filepath.Ext(path)) == ".mp3" {
-			tracks = append(tracks, model.InputTrack{
-				Path:     path,
-				BaseName: filepath.Base(path),
-			})
+			if info, err := d.Info(); err == nil {
+				tracks = append(tracks, model.InputTrack{
+					Path:     path,
+					BaseName: filepath.Base(path),
+					Size:     info.Size(),
+				})
+			}
 		}
 		return nil
 	})
@@ -96,11 +103,14 @@ func scanFlat(root string) ([]model.InputTrack, error) {
 	}
 	for _, e := range entries {
 		if !e.IsDir() && strings.ToLower(filepath.Ext(e.Name())) == ".mp3" {
-			path := filepath.Join(root, e.Name())
-			tracks = append(tracks, model.InputTrack{
-				Path:     path,
-				BaseName: filepath.Base(path),
-			})
+			if info, err := e.Info(); err == nil {
+				path := filepath.Join(root, e.Name())
+				tracks = append(tracks, model.InputTrack{
+					Path:     path,
+					BaseName: filepath.Base(path),
+					Size:     info.Size(),
+				})
+			}
 		}
 	}
 	return tracks, nil

@@ -15,7 +15,7 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/bookmux
+    dir: cmd/bookmux
     binary: bookmux
     ldflags:
       - -s -w -X main.version={{.Version}}
@@ -49,21 +49,32 @@ nfpms:
       - rpm
       - apk
 
-brews:
-  - repository:
-      owner: MrZoidberg
-      name: homebrew-tap
-    homepage: https://github.com/MrZoidberg/bookmux
-    description: A CLI tool for merging audio tracks into audiobooks.
-    license: MIT
+# brews:
+#   - name: bookmux
+#     repository:
+#       owner: MrZoidberg
+#       name: homebrew-tap
+#       branch: main
+#     directory: Formula
+#     homepage: https://github.com/MrZoidberg/bookmux
+#     description: A CLI tool for merging audio tracks into audiobooks.
+#     license: MIT
+#     install: |
+#       bin.install "bookmux"
+#     # xattr hook for mac binaries
+#     extra_install: |
+#       if OS.mac?
+#         system "xattr", "-dr", "com.apple.quarantine", "#{bin}/bookmux"
+#       end
 
-scoops:
-  - repository:
-      owner: MrZoidberg
-      name: scoop-bucket
-    homepage: https://github.com/MrZoidberg/bookmux
-    description: A CLI tool for merging audio tracks into audiobooks.
-    license: MIT
+# scoops:
+#   - repository:
+#       owner: MrZoidberg
+#       name: scoop-bucket
+#       branch: main
+#     homepage: https://github.com/MrZoidberg/bookmux
+#     description: A CLI tool for merging audio tracks into audiobooks.
+#     license: MIT
 
 checksum:
   name_template: 'checksums.txt'

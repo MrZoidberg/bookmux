@@ -15,17 +15,17 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/bookmux/main.go
+    main: ./cmd/bookmux
     binary: bookmux
     ldflags:
       - -s -w -X main.version={{.Version}}
 
 archives:
-  - format: tar.gz
+  - formats: [tar.gz]
     # use zip for windows archives
     format_overrides:
       - goos: windows
-        format: zip
+        formats: [zip]
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_

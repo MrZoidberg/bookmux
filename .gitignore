@@ -1,5 +1,6 @@
 .DS_Store
 *.m4b
 *.mp3
-bookmux
+/bookmux
 bookmux.log
+/dist/

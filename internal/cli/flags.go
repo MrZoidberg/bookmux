@@ -8,7 +8,7 @@ import (
 
 // ParseFlags parses command line arguments and returns the BuildConfig
 // or an error if arguments are invalid or if a user requests help.
-func ParseFlags(version string) (*model.BuildConfig, error) {
+func ParseFlags(_ string) (*model.BuildConfig, error) {
 	var cfg model.BuildConfig
 	parser := flags.NewParser(&cfg, flags.Default)
 	parser.ShortDescription = "BookMux"

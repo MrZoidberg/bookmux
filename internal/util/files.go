@@ -2,11 +2,12 @@ package util
 
 import (
 	"os"
+	"path/filepath"
 )
 
 // WriteLines writes a slice of strings to a file, each on a new line.
 func WriteLines(path string, lines []string) error {
-	f, err := os.Create(path)
+	f, err := os.Create(filepath.Clean(path))
 	if err != nil {
 		return err
 	}

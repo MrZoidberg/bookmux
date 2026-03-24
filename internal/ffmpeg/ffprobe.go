@@ -8,7 +8,7 @@ import (
 )
 
 // GetAudioInfo returns the duration (ms) and bitrate of the audio file.
-func GetAudioInfo(path string) (int64, string, error) {
+func GetAudioInfo(path string) (durationMs int64, bitrate string, err error) {
 	t := new(transcoder.Transcoder)
 	// Initialize with empty output as we only need probing
 	if err := t.Initialize(path, ""); err != nil {
@@ -17,7 +17,7 @@ func GetAudioInfo(path string) (int64, string, error) {
 
 	metadata := t.MediaFile().Metadata()
 	durationSec, _ := strconv.ParseFloat(metadata.Format.Duration, 64)
-	bitrate := metadata.Format.BitRate
+	bitrate = metadata.Format.BitRate
 	if bitrate != "" {
 		if brInt, err := strconv.ParseInt(bitrate, 10, 64); err == nil {
 			bitrate = fmt.Sprintf("%dk", brInt/1000)

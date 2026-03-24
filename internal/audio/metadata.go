@@ -9,7 +9,7 @@ import (
 
 // GenerateMetadata creates an FFMETADATA file with chapters and basic metadata.
 func GenerateMetadata(tempDir string, cfg *model.BuildConfig, tracks []model.InputTrack) (string, error) {
-	metaPath := filepath.Join(tempDir, "metadata.txt")
+	metaPath := filepath.Clean(filepath.Join(tempDir, "metadata.txt"))
 	f, err := os.Create(metaPath)
 	if err != nil {
 		return "", err
@@ -30,7 +30,7 @@ func GenerateMetadata(tempDir string, cfg *model.BuildConfig, tracks []model.Inp
 	}
 
 	// Calculate and write chapters
-	var currentMs int64 = 0
+	var currentMs int64
 	for _, track := range tracks {
 		fmt.Fprintln(f, "[CHAPTER]")
 		fmt.Fprintln(f, "TIMEBASE=1/1000")

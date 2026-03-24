@@ -1,5 +1,6 @@
 package model
 
+// InputTrack represents a single audio file to be merged.
 type InputTrack struct {
 	Path       string
 	BaseName   string
@@ -8,12 +9,14 @@ type InputTrack struct {
 	Bitrate    string
 }
 
+// Chapter represents a chapter's metadata in the resulting audiobook.
 type Chapter struct {
 	Title      string
 	StartMs    int64
 	DurationMs int64
 }
 
+// BookMetadata contains descriptive information for the audiobook.
 type BookMetadata struct {
 	Title  string
 	Author string
@@ -21,6 +24,7 @@ type BookMetadata struct {
 	Cover  string
 }
 
+// BuildConfig holds all command-line flags and derived configuration.
 type BuildConfig struct {
 	InputPath  string `long:"input" description:"input directory or comma-separated files"`
 	OutputPath string `long:"output" description:"output .m4b file"`

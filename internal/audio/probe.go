@@ -16,12 +16,9 @@ func ProbeTracks(tracks []model.InputTrack, verbose bool) error {
 	errChan := make(chan error, len(tracks))
 
 	// Use a worker pool (e.g., 8 workers)
-	workerCount := 8
-	if len(tracks) < workerCount {
-		workerCount = len(tracks)
-	}
+	workerCount := min(8, len(tracks))
 
-	for i := 0; i < workerCount; i++ {
+	for i := range workerCount {
 		wg.Add(1)
 		go func(workerID int) {
 			defer wg.Done()

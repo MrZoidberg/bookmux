@@ -12,26 +12,9 @@ import (
 )
 
 // DiscoverFiles finds MP3 files in the given path.
-// If recursive is true, it uses WalkDir, else it just reads the flat directory.
 func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
-	// For MVP: input could be a directory or a comma-separated list of files
-	// If it's a comma-separated list, bypass scanning.
 	if strings.Contains(cfg.InputPath, ",") {
-		var tracks []model.InputTrack
-		files := strings.Split(cfg.InputPath, ",")
-		for _, f := range files {
-			f = strings.TrimSpace(f)
-			if strings.ToLower(filepath.Ext(f)) == ".mp3" {
-				tracks = append(tracks, model.InputTrack{
-					Path:     f,
-					BaseName: filepath.Base(f),
-				})
-			}
-		}
-		if len(tracks) == 0 {
-			return nil, fmt.Errorf("no valid mp3 files found in input list")
-		}
-		return tracks, nil
+		return parseFileList(cfg.InputPath)
 	}
 
 	info, err := os.Stat(cfg.InputPath)
@@ -40,7 +23,6 @@ func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
 	}
 
 	if !info.IsDir() {
-		// Single file?
 		if strings.ToLower(filepath.Ext(cfg.InputPath)) != ".mp3" {
 			return nil, fmt.Errorf("input file is not an mp3")
 		}
@@ -52,31 +34,9 @@ func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
 
 	var tracks []model.InputTrack
 	if cfg.Recursive {
-		err = filepath.WalkDir(cfg.InputPath, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			if !d.IsDir() && strings.ToLower(filepath.Ext(path)) == ".mp3" {
-				tracks = append(tracks, model.InputTrack{
-					Path:     path,
-					BaseName: filepath.Base(path),
-				})
-			}
-			return nil
-		})
+		tracks, err = scanRecursive(cfg.InputPath)
 	} else {
-		entries, err := os.ReadDir(cfg.InputPath)
-		if err == nil {
-			for _, e := range entries {
-				if !e.IsDir() && strings.ToLower(filepath.Ext(e.Name())) == ".mp3" {
-					path := filepath.Join(cfg.InputPath, e.Name())
-					tracks = append(tracks, model.InputTrack{
-						Path:     path,
-						BaseName: filepath.Base(path),
-					})
-				}
-			}
-		}
+		tracks, err = scanFlat(cfg.InputPath)
 	}
 
 	if err != nil {
@@ -91,5 +51,57 @@ func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
 		log.Printf("Discovered %d files in %s", len(tracks), cfg.InputPath)
 	}
 
+	return tracks, nil
+}
+
+func parseFileList(input string) ([]model.InputTrack, error) {
+	var tracks []model.InputTrack
+	for f := range strings.SplitSeq(input, ",") {
+		f = strings.TrimSpace(f)
+		if strings.ToLower(filepath.Ext(f)) == ".mp3" {
+			tracks = append(tracks, model.InputTrack{
+				Path:     f,
+				BaseName: filepath.Base(f),
+			})
+		}
+	}
+	if len(tracks) == 0 {
+		return nil, fmt.Errorf("no valid mp3 files found in input list")
+	}
+	return tracks, nil
+}
+
+func scanRecursive(root string) ([]model.InputTrack, error) {
+	var tracks []model.InputTrack
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && strings.ToLower(filepath.Ext(path)) == ".mp3" {
+			tracks = append(tracks, model.InputTrack{
+				Path:     path,
+				BaseName: filepath.Base(path),
+			})
+		}
+		return nil
+	})
+	return tracks, err
+}
+
+func scanFlat(root string) ([]model.InputTrack, error) {
+	var tracks []model.InputTrack
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range entries {
+		if !e.IsDir() && strings.ToLower(filepath.Ext(e.Name())) == ".mp3" {
+			path := filepath.Join(root, e.Name())
+			tracks = append(tracks, model.InputTrack{
+				Path:     path,
+				BaseName: filepath.Base(path),
+			})
+		}
+	}
 	return tracks, nil
 }

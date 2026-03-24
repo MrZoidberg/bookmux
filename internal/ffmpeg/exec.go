@@ -23,6 +23,7 @@ type Progress struct {
 // Run executes a command and captures its output.
 // Note: goffmpeg is usually used via its Transcoder API, but we keep this for simple utility calls.
 func Run(logger io.Writer, name string, args ...string) error {
+	// #nosec G204
 	cmd := exec.Command(name, args...)
 	if logger != nil {
 		cmd.Stderr = logger
@@ -34,9 +35,9 @@ func Run(logger io.Writer, name string, args ...string) error {
 	return nil
 }
 
-// NOTE: RunWithProgress is being phased out in favor of direct goffmpeg.Transcoder usage
-// in the audio package. 
-func RunWithProgress(logger io.Writer, progressCallback func(Progress), name string, args ...string) error {
+// RunWithProgress is being phased out in favor of direct goffmpeg.Transcoder usage
+// in the audio package.
+func RunWithProgress(_ io.Writer, _ func(Progress), _ string, _ ...string) error {
 	// For now, keep the old implementation or a wrapper if possible.
 	// But since goffmpeg is a builder, it's better to refactor the callers.
 	// I'll leave this here as a placeholder during refactor.

@@ -156,27 +156,32 @@ func (m modelTUI) View() string {
 var p *tea.Program
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	cfg, err := cli.ParseFlags(version)
 	if err != nil {
-		os.Exit(1)
+		return err
 	}
 
 	if cfg.Version {
 		fmt.Printf("BookMux %s\n", version)
-		os.Exit(0)
+		return nil
 	}
 
 	if cfg.InputPath == "" || cfg.OutputPath == "" {
-		fmt.Fprintf(os.Stderr, "Error: --input and --output are required. Use --help for usage.\n")
-		os.Exit(1)
+		return fmt.Errorf("--input and --output are required. Use --help for usage")
 	}
 
 	if cfg.LogFile != "" {
 		var err error
-		logFile, err = os.OpenFile(cfg.LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		logFile, err = os.OpenFile(cfg.LogFile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0o600)
 		if err != nil {
-			fmt.Printf("error opening log file %s: %v\n", cfg.LogFile, err)
-			os.Exit(1)
+			return fmt.Errorf("error opening log file %s: %v", cfg.LogFile, err)
 		}
 		defer logFile.Close()
 		log.SetOutput(logFile)
@@ -189,9 +194,9 @@ func main() {
 	p = tea.NewProgram(m)
 
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("bubbletea error: %v", err)
 	}
+	return nil
 }
 
 func renderHeader() string {

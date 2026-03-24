@@ -16,7 +16,7 @@ import (
 
 // ConcatFiles takes the sorted tracks and uses ffmpeg to merge them.
 // It pre-processes tracks in parallel (transcoding/normalizing) and then merges them.
-func ConcatFiles(logger io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack, progressCallback func(int64)) error {
+func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack, progressCallback func(int64)) error {
 	if !cfg.Overwrite {
 		if _, err := os.Stat(cfg.OutputPath); err == nil {
 			return fmt.Errorf("output file %s already exists; use --overwrite to replace it", cfg.OutputPath)
@@ -205,8 +205,7 @@ func ConcatFiles(logger io.Writer, cfg *model.BuildConfig, tracks []model.InputT
 		raw = append(raw, "-metadata", fmt.Sprintf("title=%s", cfg.Title))
 	}
 	if cfg.Author != "" {
-		raw = append(raw, "-metadata", fmt.Sprintf("artist=%s", cfg.Author))
-		raw = append(raw, "-metadata", fmt.Sprintf("album_artist=%s", cfg.Author))
+		raw = append(raw, "-metadata", fmt.Sprintf("artist=%s", cfg.Author), "-metadata", fmt.Sprintf("album_artist=%s", cfg.Author))
 	}
 	if cfg.Album != "" {
 		raw = append(raw, "-metadata", fmt.Sprintf("album=%s", cfg.Album))

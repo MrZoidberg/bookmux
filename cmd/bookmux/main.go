@@ -173,6 +173,13 @@ func run() error {
 		return nil
 	}
 
+	if cfg.Shell != "" {
+		if cfg.Install {
+			return cli.InstallCompletion(cfg.Shell)
+		}
+		return cli.WriteCompletion(cfg.Shell)
+	}
+
 	if cfg.InputPath == "" || cfg.OutputPath == "" {
 		return fmt.Errorf("--input and --output are required. Use --help for usage")
 	}

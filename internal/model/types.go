@@ -43,4 +43,6 @@ type BuildConfig struct {
 	LogFile    string `long:"log" description:"write logs to file"`
 	Verbose    bool   `long:"verbose" description:"verbose logs"`
 	Version    bool   `short:"v" long:"version" description:"show version and exit"`
+	Shell      string `long:"completion" description:"generate completion script for bash, zsh, or fish"`
+	Install    bool   `long:"install" description:"install completion script for the current shell"`
 }

@@ -22,6 +22,17 @@ Works across `bash`, `zsh`, and `fish`.
 irm https://raw.githubusercontent.com/MrZoidberg/bookmux/main/install.ps1 | iex
 ```
 
+### Shell Completions
+
+BookMux can generate shell completions for `bash`, `zsh`, and `fish`.
+
+To install completions for your current shell, run:
+```bash
+bookmux --completion <bash|zsh|fish> --install
+```
+
+After installation, restart your shell or source your configuration file.
+
 ## Usage
 
 Merge a directory of audio files into an M4B audiobook:

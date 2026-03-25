@@ -17,6 +17,11 @@ curl -sSfL https://raw.githubusercontent.com/MrZoidberg/bookmux/main/install.sh 
 ```
 Works across `bash`, `zsh`, and `fish`.
 
+### Homebrew (macOS)
+```bash
+brew install --cask mrzoidberg/apps/bookmux
+```
+
 ### Windows (PowerShell)
 ```powershell
 irm https://raw.githubusercontent.com/MrZoidberg/bookmux/main/install.ps1 | iex

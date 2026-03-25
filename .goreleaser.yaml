@@ -49,13 +49,13 @@ nfpms:
       - rpm
       - apk
 
-brews:
+homebrew_casks:
   - name: bookmux
     repository:
       owner: MrZoidberg
       name: homebrew-apps
       branch: master
-    directory: Formula
+    directory: Casks
     homepage: https://github.com/MrZoidberg/bookmux
     description: A CLI tool for merging audio tracks into audiobooks.
     license: MIT
@@ -63,13 +63,15 @@ brews:
       name: MrZoidberg
       email: mike@merkulov.me
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
-    install: |
-      bin.install "bookmux"
-    # xattr hook for mac binaries
-    extra_install: |
-      if OS.mac?
-        system "xattr", "-dr", "com.apple.quarantine", "#{bin}/bookmux"
-      end
+    # Specify the binaries to be installed
+    binaries: [bookmux]
+    # xattr hook for mac binaries to remove quarantine
+    hooks:
+      post:
+        install: |
+          if OS.mac?
+            system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/bookmux"]
+          end
 
 # scoops:
 #   - repository:

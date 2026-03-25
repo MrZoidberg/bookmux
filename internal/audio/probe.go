@@ -26,7 +26,7 @@ func ProbeTracks(tracks []model.InputTrack, verbose bool) error {
 				if verbose {
 					log.Printf("[Worker %d] Probing track %d/%d: %s", workerID, idx+1, len(tracks), tracks[idx].Path)
 				}
-				duration, bitrate, err := ffmpeg.GetAudioInfo(tracks[idx].Path)
+				duration, bitrate, _, err := ffmpeg.GetAudioInfo(tracks[idx].Path)
 				if err != nil {
 					errChan <- fmt.Errorf("failed to probe %s: %w", tracks[idx].Path, err)
 					return

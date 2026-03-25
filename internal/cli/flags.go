@@ -13,7 +13,7 @@ func ParseFlags(_ string) (*model.BuildConfig, error) {
 	var cfg model.BuildConfig
 	parser := flags.NewParser(&cfg, flags.HelpFlag|flags.PassDoubleDash)
 	parser.ShortDescription = "BookMux"
-	parser.LongDescription = "A CLI tool for merging audio tracks into audiobooks."
+	parser.LongDescription = "A CLI tool for merging audio tracks into M4B audiobooks."
 
 	_, err := parser.Parse()
 	if err != nil {

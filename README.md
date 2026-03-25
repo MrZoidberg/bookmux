@@ -1,6 +1,6 @@
 # BookMux
 
-A CLI tool for merging audio tracks into audiobooks.
+A CLI tool for merging audio tracks into [M4B audiobooks](https://fileextension.fandom.com/wiki/M4B).
 
 ## Features
 - Completely free and open source.

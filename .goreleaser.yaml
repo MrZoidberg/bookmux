@@ -42,7 +42,7 @@ nfpms:
   - vendor: Mykhaylo Merkulov
     homepage: https://github.com/MrZoidberg/bookmux
     maintainer: Mykhaylo Merkulov <mike@merkulov.me>
-    description: A CLI tool for merging audio tracks into audiobooks.
+    description: A CLI tool for merging audio tracks into M4B audiobooks.
     license: MIT
     formats:
       - deb
@@ -57,7 +57,7 @@ homebrew_casks:
       branch: master
     directory: Casks
     homepage: https://github.com/MrZoidberg/bookmux
-    description: A CLI tool for merging audio tracks into audiobooks.
+    description: A CLI tool for merging audio tracks into M4B audiobooks.
     license: MIT
     commit_author:
       name: MrZoidberg
@@ -80,8 +80,8 @@ winget:
     publisher_support_url: https://github.com/MrZoidberg/bookmux/issues
     package_identifier: MrZoidberg.bookmux
     package_name: bookmux
-    short_description: A CLI tool for merging audio tracks into audiobooks.
-    description: A CLI tool for merging audio tracks into audiobooks.
+    short_description: A CLI tool for merging audio tracks into M4B audiobooks.
+    description: A CLI tool for merging audio tracks into M4B audiobooks.
     homepage: https://github.com/MrZoidberg/bookmux
     license: MIT
     license_url: https://github.com/MrZoidberg/bookmux/blob/main/LICENSE
@@ -113,7 +113,7 @@ winget:
 #       name: scoop-bucket
 #       branch: main
 #     homepage: https://github.com/MrZoidberg/bookmux
-#     description: A CLI tool for merging audio tracks into audiobooks.
+#     description: A CLI tool for merging audio tracks into M4B audiobooks.
 #     license: MIT
 
 checksum:

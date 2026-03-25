@@ -74,7 +74,7 @@ func discoverCmd(cfg *model.BuildConfig) tea.Cmd {
 func sortCmd(tracks []model.InputTrack, verbose bool) tea.Cmd {
 	return func() tea.Msg {
 		input.NaturalSort(tracks)
-		if err := audio.ProbeTracks(tracks, verbose); err != nil {
+		if _, err := audio.ProbeTracks(tracks, verbose); err != nil {
 			return errMsg(err)
 		}
 		return statusMsg("Probing complete. Merging...")

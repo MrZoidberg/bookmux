@@ -176,29 +176,40 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 	// Configure inputs and global flags
 	trans.MediaFile().SetInputPath(manifestPath)
 	
-	// Add extra inputs via raw input args if necessary
-	inputArgs := []string{"-f", "concat", "-safe", "0"}
+	inputIdx := 0
+	var inputArgs []string
+	var metadataIdx, coverIdx, concatIdx int
+
 	if metadataPath != "" {
 		inputArgs = append(inputArgs, "-i", metadataPath)
+		metadataIdx = inputIdx
+		inputIdx++
+	} else {
+		metadataIdx = -1
 	}
+
 	if cfg.CoverPath != "" {
 		inputArgs = append(inputArgs, "-i", cfg.CoverPath)
+		coverIdx = inputIdx
+		inputIdx++
+	} else {
+		coverIdx = -1
 	}
+
+	inputArgs = append(inputArgs, "-f", "concat", "-safe", "0")
+	concatIdx = inputIdx
+
 	trans.MediaFile().SetRawInputArgs(inputArgs)
 
 	// Use raw parameters for complex mapping and metadata
 	var raw []string
 	if metadataPath != "" {
-		raw = append(raw, "-map_metadata", "1")
+		raw = append(raw, "-map_metadata", fmt.Sprintf("%d", metadataIdx))
 	}
 	if cfg.CoverPath != "" {
-		coverIdx := 1
-		if metadataPath != "" {
-			coverIdx = 2
-		}
-		raw = append(raw, "-map", "0:a", "-map", fmt.Sprintf("%d:v", coverIdx), "-c:v", "copy", "-disposition:v:0", "attached_pic")
+		raw = append(raw, "-map", fmt.Sprintf("%d:a", concatIdx), "-map", fmt.Sprintf("%d:v", coverIdx), "-c:v", "copy", "-disposition:v:0", "attached_pic")
 	} else {
-		raw = append(raw, "-map", "0:a", "-vn")
+		raw = append(raw, "-map", fmt.Sprintf("%d:a", concatIdx), "-vn")
 	}
 
 	if cfg.Title != "" {
@@ -218,6 +229,7 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 
 	if cfg.Verbose {
 		log.Printf("Executing final merge via goffmpeg")
+		log.Printf("FFmpeg command: ffmpeg %v", trans.GetCommand())
 	}
 
 	done := trans.Run(false)

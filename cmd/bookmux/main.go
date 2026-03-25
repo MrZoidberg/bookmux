@@ -183,7 +183,7 @@ func formatSize(b int64) string {
 		div *= unit
 		exp++
 	}
-	return fmt.Sprintf("%.2 f %cB", float64(b)/float64(div), "KMGTPE"[exp])
+	return fmt.Sprintf("%.2f %cB", float64(b)/float64(div), "KMGTPE"[exp])
 }
 
 var p *tea.Program
@@ -217,7 +217,13 @@ func run() error {
 	}
 
 	if cfg.InputPath == "" || cfg.OutputPath == "" {
-		return fmt.Errorf("--input and --output are required. Use --help for usage")
+		ok, err := cli.RunInteractiveMode(cfg)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return nil
+		}
 	}
 
 	if cfg.LogFile != "" {

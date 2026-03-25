@@ -73,6 +73,40 @@ homebrew_casks:
             system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/bookmux"]
           end
 
+winget:
+  - name: bookmux
+    publisher: Mykhaylo Merkulov
+    publisher_url: https://github.com/MrZoidberg
+    publisher_support_url: https://github.com/MrZoidberg/bookmux/issues
+    package_identifier: MrZoidberg.bookmux
+    package_name: bookmux
+    short_description: A CLI tool for merging audio tracks into audiobooks.
+    description: A CLI tool for merging audio tracks into audiobooks.
+    homepage: https://github.com/MrZoidberg/bookmux
+    license: MIT
+    license_url: https://github.com/MrZoidberg/bookmux/blob/main/LICENSE
+    copyright: Mykhaylo Merkulov
+    tags:
+      - golang
+      - cli
+      - audiobook
+      - ffmpeg
+    release_notes: "{{.Changelog}}"
+    commit_author:
+      name: MrZoidberg
+      email: mike@merkulov.me
+    commit_msg_template: "WinGet manifest update for {{ .PackageIdentifier }} version {{ .Tag }}"
+    repository:
+      owner: MrZoidberg
+      name: winget-pkgs
+      branch: "winget-bookmux-{{.Version}}"
+      pull_request:
+        enabled: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
+
 # scoops:
 #   - repository:
 #       owner: MrZoidberg

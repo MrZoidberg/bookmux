@@ -3,11 +3,11 @@
 A CLI tool for merging audio tracks into audiobooks.
 
 ## Features
+- Completely free and open source.
 - Merges multiple audio files into a single `.m4b`.
 - Support for chapters from source files.
 - Loudness normalization.
 - Mono/Bitrate control.
-- Built-in TUI progress bar.
 
 ## Installation
 

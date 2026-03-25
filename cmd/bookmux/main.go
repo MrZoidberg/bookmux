@@ -15,6 +15,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/progress"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/jessevdk/go-flags"
 )
 
 var version = "dev"
@@ -197,6 +198,9 @@ func main() {
 func run() error {
 	cfg, err := cli.ParseFlags(version)
 	if err != nil {
+		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
+			return nil
+		}
 		return err
 	}
 

@@ -102,6 +102,17 @@ func RunInteractiveMode(cfg *model.BuildConfig) (bool, error) {
 				cfg.Bitrate = sourceBitrate
 			}
 		}
+
+		if meta.HasCover && cfg.CoverPath == "" {
+			fmt.Println("Found cover art in first track.")
+			tempCover := filepath.Join(os.TempDir(), "bookmux_cover.jpg")
+			if err := ffmpeg.ExtractCover(tracks[0].Path, tempCover); err == nil {
+				cfg.CoverPath = tempCover
+				fmt.Printf("Defaulting to source cover: %s\n", cfg.CoverPath)
+			} else {
+				fmt.Printf("Warning: Failed to extract cover: %v\n", err)
+			}
+		}
 	}
 
 	// Fallback to directory name for title if still empty

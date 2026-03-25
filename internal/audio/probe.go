@@ -10,7 +10,7 @@ import (
 
 // ProbeTracks populates the DurationMs field for each track using ffprobe.
 // It uses a pool of workers to speed up the process.
-func ProbeTracks(tracks []model.InputTrack, verbose bool) error {
+func ProbeTracks(tracks []model.InputTrack, verbose bool) (model.BookMetadata, error) {
 	var wg sync.WaitGroup
 	trackChan := make(chan int, len(tracks))
 	errChan := make(chan error, len(tracks))
@@ -46,8 +46,10 @@ func ProbeTracks(tracks []model.InputTrack, verbose bool) error {
 	close(errChan)
 
 	if len(errChan) > 0 {
-		return <-errChan
+		return model.BookMetadata{}, <-errChan
 	}
 
-	return nil
+	// For convenience, return the metadata of the first track
+	_, _, meta, _ := ffmpeg.GetAudioInfo(tracks[0].Path)
+	return meta, nil
 }

@@ -19,10 +19,11 @@ type Chapter struct {
 
 // BookMetadata contains descriptive information for the audiobook.
 type BookMetadata struct {
-	Title  string
-	Author string
-	Album  string
-	Cover  string
+	Title    string
+	Author   string
+	Album    string
+	Cover    string
+	HasCover bool
 }
 
 // BuildConfig holds all command-line flags and derived configuration.

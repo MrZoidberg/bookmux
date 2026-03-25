@@ -27,7 +27,8 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 	if cfg.Verbose {
 		log.Printf("Probing tracks...")
 	}
-	if err := ProbeTracks(tracks, cfg.Verbose); err != nil {
+	meta, err := ProbeTracks(tracks, cfg.Verbose)
+	if err != nil {
 		return err
 	}
 
@@ -46,6 +47,19 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 		return fmt.Errorf("failed to create temp dir: %w", err)
 	}
 	defer os.RemoveAll(workDir)
+
+	// Auto-extract cover if not provided and first track has one
+	if cfg.CoverPath == "" && meta.HasCover {
+		if cfg.Verbose {
+			log.Printf("Found cover art in source, extracting...")
+		}
+		autoCover := filepath.Join(workDir, "auto_cover.jpg")
+		if err := ffmpeg.ExtractCover(tracks[0].Path, autoCover); err == nil {
+			cfg.CoverPath = autoCover
+		} else if cfg.Verbose {
+			log.Printf("Warning: Failed to auto-extract cover: %v", err)
+		}
+	}
 
 	// 2. Stage 1: Pre-process tracks in parallel
 	processedTracks := make([]model.InputTrack, len(tracks))

@@ -50,6 +50,7 @@ func GetAudioInfo(path string) (durationMs int64, bitrate string, meta model.Boo
 		tags[strings.ToLower(k)] = v
 	}
 
+	var hasCover bool
 	// Then append/fallback to tags from the first audio stream if present
 	for _, stream := range parsed.Streams {
 		if stream.CodecType == "audio" {
@@ -59,14 +60,17 @@ func GetAudioInfo(path string) (durationMs int64, bitrate string, meta model.Boo
 					tags[lk] = v
 				}
 			}
-			break
+		}
+		if stream.CodecType == "video" {
+			hasCover = true
 		}
 	}
 
 	meta = model.BookMetadata{
-		Title:  tags["title"],
-		Author: tags["artist"],
-		Album:  tags["album"],
+		Title:    tags["title"],
+		Author:   tags["artist"],
+		Album:    tags["album"],
+		HasCover: hasCover,
 	}
 
 	// Popular alternatives
@@ -81,4 +85,14 @@ func GetAudioInfo(path string) (durationMs int64, bitrate string, meta model.Boo
 	}
 
 	return int64(durationSec * 1000), bitrate, meta, nil
+}
+
+// ExtractCover extracts the first video stream (usually cover art) to the specified path.
+func ExtractCover(src, dst string) error {
+	// ffmpeg -i src -map 0:v:0 -c copy dst
+	cmd := exec.Command(FFmpegPath, "-i", src, "-map", "0:v:0", "-c", "copy", "-y", dst)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("ffmpeg cover extraction failed: %w (output: %s)", err, string(out))
+	}
+	return nil
 }

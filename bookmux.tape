@@ -66,15 +66,9 @@ Set FontSize 32
 Set Width 1200
 Set Height 600
 
-Type "echo 'Welcome to Bookmux demo!'" Sleep 500ms  Enter
-
-Type "./bookmux \
-  --input "/Users/mykhaylomerkulov/Downloads/Finney_Jack_-_Mezh_Dvukh_Vremyon_(Knyazev_Igor)" \
-  --output "./Finney_Jack_Audiobook.m4b" \
-  --title "Меж Двух Времен" \
-  --author "Jack Finney" \
-  --bitrate 44k \
-  --mono \
-  --verbose"
+Type "brew install --cask mrzoidberg/apps/bookmux"
+Enter
+Sleep 2
+Type "bookmux --input '/Users/mykhaylomerkulov/Downloads/Finney_Jack_-_Mezh_Dvukh_Vremyon_(Knyazev_Igor)' --output './Finney_Jack_Audiobook.m4b' --title 'Меж Двух Времен' --author 'Jack Finney' --bitrate 44k --mono --verbose"
 Enter
 Sleep 3

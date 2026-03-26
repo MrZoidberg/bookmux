@@ -231,29 +231,16 @@ func TestE2E_BookMuxConversion(t *testing.T) {
 			for i, exp := range book.Chapters {
 				got := probeData.Chapters[i]
 
-				// Fuzzy check for title: allow "wonderland_ch_06" if it contains "6"
 				if got.Tags.Title != exp.Chapter {
-					// Extra logic: Extract section number and see if it's present in the title
-					sectionNum := strconv.Itoa(exp.Section)
-					if !strings.Contains(got.Tags.Title, sectionNum) {
-						t.Errorf("Chapter %d title mismatch: got %q, want %q", i, got.Tags.Title, exp.Chapter)
-					} else {
-						t.Logf("Chapter %d title mismatch (fuzzy match ok): got %q, expected %q (matched section %s)", i, got.Tags.Title, exp.Chapter, sectionNum)
-					}
+					t.Errorf("Chapter %d title mismatch: got %q, want %q", i, got.Tags.Title, exp.Chapter)
 				}
 
 				start, _ := strconv.ParseFloat(got.StartTime, 64)
 				end, _ := strconv.ParseFloat(got.EndTime, 64)
 				gotDur := end - start
 
-				// Allow +/- 2 seconds discrepancy normally. 
-				// SPECIAL CASE: File 9 in demo zip is known to be ~908s while JSON says 15s.
-				// SPECIAL CASE: File 6 in demo zip is known to be ~775s while JSON says 809s.
 				diff := gotDur - float64(exp.DurationSeconds)
 				tolerance := 2.0
-				if exp.Section == 9 || exp.Section == 6 {
-					tolerance = 1000.0 // specifically allow known data mismatches for demo zip
-				}
 				
 				if diff < -tolerance || diff > tolerance {
 					t.Errorf("Chapter %d (Section %d) duration mismatch: got %.2f, want %d", i, exp.Section, gotDur, exp.DurationSeconds)

@@ -237,6 +237,10 @@ func run() error {
 	}
 
 	if cfg.InputPath == "" || cfg.OutputPath == "" {
+		if !isatty.IsTerminal(os.Stdin.Fd()) || !isatty.IsTerminal(os.Stdout.Fd()) {
+			return fmt.Errorf("--input and --output are required. Use --help for usage")
+		}
+
 		ok, err := cli.RunInteractiveMode(cfg)
 		if err != nil {
 			return err
@@ -270,7 +274,6 @@ func run() error {
 	}
 
 	// Headless execution (e.g., CI, automation)
-	fmt.Fprintf(os.Stderr, "Running in headless mode...\n")
 	if err := ffmpeg.CheckDependencies(); err != nil {
 		return err
 	}

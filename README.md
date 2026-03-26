@@ -27,6 +27,11 @@ brew install --cask mrzoidberg/apps/bookmux
 irm https://raw.githubusercontent.com/MrZoidberg/bookmux/main/install.ps1 | iex
 ```
 
+### Windows (Winget)
+```powershell
+winget install MrZoidberg.bookmux
+```
+
 ### Shell Completions
 
 BookMux can generate shell completions for `bash`, `zsh`, and `fish`.

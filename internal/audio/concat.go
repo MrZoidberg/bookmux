@@ -98,10 +98,12 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 			outPath := filepath.Join(workDir, fmt.Sprintf("track_%05d%s", idx, ext))
 
 			trans := ffmpeg.GetTranscoder()
-			if err := trans.Initialize(track.Path, outPath); err != nil {
+			if err := trans.InitializeEmptyTranscoder(); err != nil {
 				results <- taskResult{idx: idx, err: err}
 				return
 			}
+			trans.MediaFile().SetInputPath(track.Path)
+			trans.MediaFile().SetOutputPath(outPath)
 
 			// Configure transcoding
 			trans.MediaFile().SetSkipVideo(true)

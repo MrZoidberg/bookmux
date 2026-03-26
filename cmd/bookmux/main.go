@@ -17,6 +17,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/jessevdk/go-flags"
+	"github.com/mattn/go-isatty"
 )
 
 var version = "dev"
@@ -258,12 +259,43 @@ func run() error {
 		log.SetOutput(io.Discard)
 	}
 
-	m := initialModel(cfg)
-	p = tea.NewProgram(m)
-
-	if _, err := p.Run(); err != nil {
-		return fmt.Errorf("bubbletea error: %v", err)
+	// Use TUI if we're in a terminal, otherwise run headless
+	if isatty.IsTerminal(os.Stdout.Fd()) && isatty.IsTerminal(os.Stdin.Fd()) {
+		m := initialModel(cfg)
+		p = tea.NewProgram(m)
+		if _, err := p.Run(); err != nil {
+			return fmt.Errorf("bubbletea error: %v", err)
+		}
+		return nil
 	}
+
+	// Headless execution (e.g., CI, automation)
+	fmt.Fprintf(os.Stderr, "Running in headless mode...\n")
+	if err := ffmpeg.CheckDependencies(); err != nil {
+		return err
+	}
+	if err := input.Validate(cfg); err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stderr, "Discovering files...")
+	tracks, err := input.DiscoverFiles(cfg)
+	if err != nil {
+		return err
+	}
+	input.NaturalSort(tracks)
+	fmt.Fprintln(os.Stderr, "Probing durations...")
+	if _, err := audio.ProbeTracks(tracks, cfg.Verbose); err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stderr, "Merging tracks...")
+	var logger io.Writer
+	if logFile != nil {
+		logger = logFile
+	}
+	if err := audio.ConcatFiles(logger, cfg, tracks, nil); err != nil {
+		return err
+	}
+	fmt.Fprintln(os.Stderr, "Done! Successfully generated m4b.")
 	return nil
 }
 

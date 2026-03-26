@@ -9,6 +9,8 @@ A CLI tool for merging audio tracks into [M4B audiobooks](https://fileextension.
 - Loudness normalization.
 - Mono/Bitrate control.
 
+![Demo](https://vhs.charm.sh/vhs-6NMfKY84XDkbpuXh7xArDw.gif)
+
 ## Installation
 
 ### macOS & Linux

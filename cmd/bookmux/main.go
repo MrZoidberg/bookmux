@@ -237,8 +237,9 @@ func run() error {
 	}
 
 	if cfg.InputPath == "" || cfg.OutputPath == "" {
-		if !isatty.IsTerminal(os.Stdin.Fd()) || !isatty.IsTerminal(os.Stdout.Fd()) {
-			return fmt.Errorf("--input and --output are required. Use --help for usage")
+		// If in CI, we MUST have flags
+		if os.Getenv("GITHUB_ACTIONS") == "true" || os.Getenv("CI") == "true" {
+			return fmt.Errorf("--input and --output flags are required in CI environment")
 		}
 
 		ok, err := cli.RunInteractiveMode(cfg)
@@ -263,8 +264,8 @@ func run() error {
 		log.SetOutput(io.Discard)
 	}
 
-	// Use TUI if we're in a terminal, otherwise run headless
-	if isatty.IsTerminal(os.Stdout.Fd()) && isatty.IsTerminal(os.Stdin.Fd()) {
+	// Use TUI progress bar if in a terminal
+	if isatty.IsTerminal(os.Stdout.Fd()) {
 		m := initialModel(cfg)
 		p = tea.NewProgram(m)
 		if _, err := p.Run(); err != nil {
@@ -273,7 +274,7 @@ func run() error {
 		return nil
 	}
 
-	// Headless execution (e.g., CI, automation)
+	// Headless execution (simple logs)
 	if err := ffmpeg.CheckDependencies(); err != nil {
 		return err
 	}

@@ -33,6 +33,7 @@ type modelTUI struct {
 	elapsedTime   time.Duration
 	originalSize  int64
 	resultSize    int64
+	width         int
 }
 
 type statusMsg string
@@ -138,6 +139,13 @@ func (m modelTUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, m.progress.SetPercent(pct)
 		}
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.progress.Width = msg.Width - 10
+		if m.progress.Width > 80 {
+			m.progress.Width = 80
+		}
+		return m, nil
 	case progress.FrameMsg:
 		progressModel, cmd := m.progress.Update(msg)
 		m.progress = progressModel.(progress.Model)
@@ -156,7 +164,17 @@ func (m modelTUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m modelTUI) View() string {
 	if m.err != nil {
-		return fmt.Sprintf("\nError: %v\n\nPress q to quit.\n", m.err)
+		width := m.width
+		if width == 0 {
+			width = 80
+		}
+		errStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("204")).
+			Bold(true).
+			Width(width - 4).
+			Padding(0, 2)
+
+		return fmt.Sprintf("\n%s\n\nPress q to quit.\n", errStyle.Render(fmt.Sprintf("Error: %v", m.err)))
 	}
 	if m.done {
 		s := fmt.Sprintf("\n%s\n\n", m.status)

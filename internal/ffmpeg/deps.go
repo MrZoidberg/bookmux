@@ -2,7 +2,10 @@ package ffmpeg
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
 )
 
 var (
@@ -31,5 +34,27 @@ func CheckDependencies() error {
 		}
 		FFprobePath = p
 	}
+
+	// On Windows, extracted static binaries MUST have .exe extension to be executable
+	// If the path doesn't have an extension, try to rename it.
+	if runtime.GOOS == "windows" {
+		FFmpegPath = ensureWindowsExe(FFmpegPath)
+		FFprobePath = ensureWindowsExe(FFprobePath)
+	}
+
 	return nil
+}
+
+func ensureWindowsExe(path string) string {
+	if path == "" {
+		return ""
+	}
+	if filepath.Ext(path) == "" {
+		newPath := path + ".exe"
+		if _, err := os.Stat(newPath); os.IsNotExist(err) {
+			_ = os.Rename(path, newPath)
+		}
+		return newPath
+	}
+	return path
 }

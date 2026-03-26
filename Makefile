@@ -7,3 +7,5 @@ test:
 lint:
 	golangci-lint run
 
+tests-e2e:
+	go test -v -tags=e2e ./e2e

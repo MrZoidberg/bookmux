@@ -37,10 +37,13 @@ func GenerateMetadata(tempDir string, cfg *model.BuildConfig, tracks []model.Inp
 		fmt.Fprintf(f, "START=%d\n", currentMs)
 		fmt.Fprintf(f, "END=%d\n", currentMs+track.DurationMs)
 
-		// Clean up title: remove extension
-		title := track.BaseName
-		if ext := filepath.Ext(title); ext != "" {
-			title = title[:len(title)-len(ext)]
+		// Clean up title: use chapter from metadata or remove extension from filename
+		title := track.Chapter
+		if title == "" {
+			title = track.BaseName
+			if ext := filepath.Ext(title); ext != "" {
+				title = title[:len(title)-len(ext)]
+			}
 		}
 		fmt.Fprintf(f, "title=%s\n", title)
 

@@ -26,13 +26,16 @@ func ProbeTracks(tracks []model.InputTrack, verbose bool) (model.BookMetadata, e
 				if verbose {
 					log.Printf("[Worker %d] Probing track %d/%d: %s", workerID, idx+1, len(tracks), tracks[idx].Path)
 				}
-				duration, bitrate, _, err := ffmpeg.GetAudioInfo(tracks[idx].Path)
+				duration, bitrate, meta, err := ffmpeg.GetAudioInfo(tracks[idx].Path)
 				if err != nil {
 					errChan <- fmt.Errorf("failed to probe %s: %w", tracks[idx].Path, err)
 					return
 				}
 				tracks[idx].DurationMs = duration
 				tracks[idx].Bitrate = bitrate
+				if meta.Title != "" {
+					tracks[idx].Chapter = meta.Title
+				}
 			}
 		}(i)
 	}

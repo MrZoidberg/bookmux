@@ -132,12 +132,6 @@ func fetchAudiobooks() ([]BookDef, error) {
 }
 
 func TestE2E_BookMuxConversion(t *testing.T) {
-	// First, fetch the audiobook specs
-	books, err := fetchAudiobooks()
-	if err != nil {
-		t.Fatalf("Could not fetch test specs: %v", err)
-	}
-
 	// Prepare one binary for all subtests
 	tmpDir := t.TempDir()
 	exeName := "bookmux"
@@ -155,6 +149,12 @@ func TestE2E_BookMuxConversion(t *testing.T) {
 		repoRoot = filepath.Dir(cwd)
 	}
 
+	// First, fetch the audiobook specs and append local fixtures when present.
+	books, err := fetchAudiobooks()
+	if err != nil {
+		t.Fatalf("Could not fetch test specs: %v", err)
+	}
+
 	mainGoPath := filepath.Join(repoRoot, "cmd", "bookmux")
 	if _, err := os.Stat(mainGoPath); os.IsNotExist(err) {
 		t.Fatalf("Could not find cmd dir at %s", mainGoPath)
@@ -168,14 +168,15 @@ func TestE2E_BookMuxConversion(t *testing.T) {
 	}
 
 	for _, book := range books {
-		book := book // capture for loop
-		t.Run(book.Title, func(t *testing.T) {
+		safeBookTitle := strings.ReplaceAll(strings.ToLower(book.Title), " ", "_")
+		safeBookTitle = strings.ReplaceAll(safeBookTitle, ";", "")
+		safeBookTitle = strings.ReplaceAll(safeBookTitle, ",", "")
+
+		t.Run(safeBookTitle, func(t *testing.T) {
 			t.Parallel()
 
 			subTmpDir := t.TempDir()
-
-			zipSlug := strings.ReplaceAll(strings.ToLower(book.Title), " ", "_")
-			zipUrl := fmt.Sprintf("http://bookmux-demo.s3-website.eu-central-1.amazonaws.com/%s_librivox.zip", zipSlug)
+			zipUrl := fmt.Sprintf("http://bookmux-demo.s3-website.eu-central-1.amazonaws.com/%s_librivox.zip", safeBookTitle)
 			zipPath := filepath.Join(subTmpDir, "book.zip")
 
 			downloadFile(t, zipUrl, zipPath)

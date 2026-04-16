@@ -190,12 +190,15 @@ func TestE2E_BookMuxConversion(t *testing.T) {
 				"--output", outputM4b,
 				"--title", book.Title,
 				"--author", book.Author,
+				"--verbose",
 			)
 
 			t.Logf("Running command: %v", runCmd.Args)
-			if out, err := runCmd.CombinedOutput(); err != nil {
+			out, err := runCmd.CombinedOutput()
+			if err != nil {
 				t.Fatalf("bookmux command failed: %v (output: %s)", err, string(out))
 			}
+			t.Logf("Command output: %s", string(out))
 
 			// Verify general metadata
 			if err := ffmpeg.CheckDependencies(); err != nil {
@@ -241,7 +244,7 @@ func TestE2E_BookMuxConversion(t *testing.T) {
 
 				diff := gotDur - float64(exp.DurationSeconds)
 				tolerance := 2.0
-				
+
 				if diff < -tolerance || diff > tolerance {
 					t.Errorf("Chapter %d (Section %d) duration mismatch: got %.2f, want %d", i, exp.Section, gotDur, exp.DurationSeconds)
 				}

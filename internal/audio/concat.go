@@ -14,6 +14,20 @@ import (
 	"bookmux/internal/util"
 )
 
+func selectTargetBitrate(cfg *model.BuildConfig, tracks []model.InputTrack) string {
+	if cfg.Bitrate != "" {
+		return cfg.Bitrate
+	}
+
+	for _, track := range tracks {
+		if track.Bitrate != "" {
+			return track.Bitrate
+		}
+	}
+
+	return "96k"
+}
+
 // ConcatFiles takes the sorted tracks and uses ffmpeg to merge them.
 // It pre-processes tracks in parallel (transcoding/normalizing) and then merges them.
 func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack, progressCallback func(int64)) error {
@@ -36,6 +50,7 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 	for _, t := range tracks {
 		totalDurationMs += t.DurationMs
 	}
+	targetBitrate := selectTargetBitrate(cfg, tracks)
 
 	tempDir := cfg.TempDir
 	if tempDir == "" {
@@ -108,15 +123,8 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 			// Configure transcoding
 			trans.MediaFile().SetSkipVideo(true)
 			trans.MediaFile().SetAudioCodec("aac")
-			
-			bitrate := cfg.Bitrate
-			if bitrate == "" {
-				bitrate = track.Bitrate
-			}
-			if bitrate == "" {
-				bitrate = "96k"
-			}
-			trans.MediaFile().SetAudioBitRate(bitrate)
+			trans.MediaFile().SetAudioBitRate(targetBitrate)
+			trans.MediaFile().SetAudioRate(44100)
 
 			if cfg.Mono {
 				trans.MediaFile().SetAudioChannels(1)
@@ -188,10 +196,10 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 	if err := trans.InitializeEmptyTranscoder(); err != nil {
 		return err
 	}
-	
+
 	// Configure inputs and global flags
 	trans.MediaFile().SetInputPath(manifestPath)
-	
+
 	inputIdx := 0
 	var inputArgs []string
 	var metadataIdx, coverIdx, concatIdx int
@@ -238,8 +246,8 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 		raw = append(raw, "-metadata", fmt.Sprintf("album=%s", cfg.Album))
 	}
 
-	raw = append(raw, "-c:a", "copy")
-	
+	raw = append(raw, "-c:a", "aac", "-b:a", targetBitrate)
+
 	trans.MediaFile().SetOutputPath(cfg.OutputPath)
 	trans.MediaFile().SetRawOutputArgs(raw)
 

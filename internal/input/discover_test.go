@@ -64,3 +64,30 @@ func TestDiscoverFilesSupportsM4AInInputList(t *testing.T) {
 		t.Fatalf("DiscoverFiles returned %d tracks, want 2", len(tracks))
 	}
 }
+
+func TestDiscoverFilesRecursive(t *testing.T) {
+	tmpDir := t.TempDir()
+	nestedDir := filepath.Join(tmpDir, "nested")
+	if err := os.MkdirAll(nestedDir, 0o755); err != nil {
+		t.Fatalf("failed to create nested dir: %v", err)
+	}
+
+	rootFile := filepath.Join(tmpDir, "chapter01.mp3")
+	nestedFile := filepath.Join(nestedDir, "chapter02.m4a")
+	for _, path := range []string{rootFile, nestedFile} {
+		if err := os.WriteFile(path, []byte("audio"), 0o600); err != nil {
+			t.Fatalf("failed to create %s: %v", path, err)
+		}
+	}
+
+	tracks, err := DiscoverFiles(&model.BuildConfig{
+		InputPath: tmpDir,
+		Recursive: true,
+	})
+	if err != nil {
+		t.Fatalf("DiscoverFiles returned error: %v", err)
+	}
+	if len(tracks) != 2 {
+		t.Fatalf("DiscoverFiles returned %d tracks, want 2", len(tracks))
+	}
+}

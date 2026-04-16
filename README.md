@@ -2,6 +2,11 @@
 
 A CLI tool for merging audio tracks into [M4B audiobooks](https://fileextension.fandom.com/wiki/M4B).
 
+[![Build Status](https://github.com/MrZoidberg/bookmux/actions/workflows/e2e.yml/badge.svg)](https://github.com/MrZoidberg/bookmux/actions/workflows/e2e.yml)
+[![Coverage Status](https://coveralls.io/repos/github/MrZoidberg/bookmux/badge.svg?branch=main)](https://coveralls.io/github/MrZoidberg/bookmux?branch=main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/MrZoidberg/bookmux)](https://goreportcard.com/report/github.com/MrZoidberg/bookmux)
+[![Latest Release](https://img.shields.io/github/v/release/MrZoidberg/bookmux)](https://github.com/MrZoidberg/bookmux/releases/latest)
+
 ## Features
 - Completely free and open source.
 - Merges multiple audio files into a single `.m4b`.

@@ -205,10 +205,11 @@ func TestE2E_BookMuxConversion(t *testing.T) {
 			if err := ffmpeg.CheckDependencies(); err != nil {
 				t.Fatalf("Failed to initialize ffmpeg dependencies: %v", err)
 			}
-			_, _, meta, err := ffmpeg.GetAudioInfo(outputM4b)
+			info, err := ffmpeg.GetAudioInfo(outputM4b)
 			if err != nil {
 				t.Fatalf("Failed to probe output m4b file: %v", err)
 			}
+			meta := info.Metadata
 			if meta.Title != book.Title {
 				t.Errorf("Expected title %q, got %q", book.Title, meta.Title)
 			}

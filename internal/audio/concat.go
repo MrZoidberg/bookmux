@@ -28,6 +28,28 @@ func selectTargetBitrate(cfg *model.BuildConfig, tracks []model.InputTrack) stri
 	return "96k"
 }
 
+func tracksAlreadyProbed(tracks []model.InputTrack) bool {
+	if len(tracks) == 0 {
+		return false
+	}
+
+	for _, track := range tracks {
+		if track.DurationMs <= 0 {
+			return false
+		}
+	}
+
+	return true
+}
+
+func totalInputDuration(tracks []model.InputTrack) int64 {
+	var total int64
+	for _, track := range tracks {
+		total += track.DurationMs
+	}
+	return total
+}
+
 // ConcatFiles takes the sorted tracks and uses ffmpeg to merge them.
 // It pre-processes tracks in parallel (transcoding/normalizing) and then merges them.
 func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack, progressCallback func(int64)) error {
@@ -37,20 +59,31 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 		}
 	}
 
-	// 1. Probe all tracks to get durations (needed for progress)
-	if cfg.Verbose {
-		log.Printf("Probing tracks...")
-	}
-	meta, err := ProbeTracks(tracks, cfg.Verbose)
-	if err != nil {
-		return err
+	// 1. Probe tracks if durations are not already available.
+	var meta model.BookMetadata
+	if tracksAlreadyProbed(tracks) {
+		if cfg.Verbose {
+			log.Printf("Using existing probe data for %d tracks", len(tracks))
+		}
+		info, err := ffmpeg.GetAudioInfo(tracks[0].Path)
+		if err != nil {
+			return err
+		}
+		meta = info.Metadata
+	} else {
+		if cfg.Verbose {
+			log.Printf("Probing tracks...")
+		}
+		probedMeta, err := ProbeTracks(tracks, cfg.Verbose)
+		if err != nil {
+			return err
+		}
+		meta = probedMeta
 	}
 
-	var totalDurationMs int64
-	for _, t := range tracks {
-		totalDurationMs += t.DurationMs
-	}
+	summary := SummarizeTracks(tracks)
 	targetBitrate := selectTargetBitrate(cfg, tracks)
+	totalDurationMs := totalInputDuration(tracks)
 
 	tempDir := cfg.TempDir
 	if tempDir == "" {
@@ -62,6 +95,34 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 		return fmt.Errorf("failed to create temp dir: %w", err)
 	}
 	defer os.RemoveAll(workDir)
+
+	if cfg.Verbose {
+		log.Printf("Input summary: files=%d total_duration=%s total_size=%s codecs=[%s] source_bitrates=[%s] sample_rates=[%s] channels=[%s]",
+			summary.TrackCount,
+			FormatDuration(summary.TotalDurationMs),
+			FormatBytes(summary.TotalSizeBytes),
+			FormatSummaryCounts(summary.CodecCounts),
+			FormatSummaryCounts(summary.BitrateCounts),
+			FormatSummaryCounts(summary.SampleRateCounts),
+			FormatSummaryCounts(summary.ChannelCounts),
+		)
+		log.Printf("Build settings: output=%s temp_dir=%s target_bitrate=%s normalize=%t mono=%t chapters=%s overwrite=%t",
+			cfg.OutputPath,
+			workDir,
+			targetBitrate,
+			cfg.Normalize,
+			cfg.Mono,
+			cfg.Chapters,
+			cfg.Overwrite,
+		)
+		log.Printf("Source metadata: title=%q author=%q album=%q embedded_cover=%t explicit_cover=%t",
+			meta.Title,
+			meta.Author,
+			meta.Album,
+			meta.HasCover,
+			cfg.CoverPath != "",
+		)
+	}
 
 	// Auto-extract cover if not provided and first track has one
 	if cfg.CoverPath == "" && meta.HasCover {
@@ -256,6 +317,26 @@ func ConcatFiles(_ io.Writer, cfg *model.BuildConfig, tracks []model.InputTrack,
 		log.Printf("FFmpeg command: ffmpeg %v", trans.GetCommand())
 	}
 
-	done := trans.Run(false)
-	return <-done
+	done := trans.Run(true)
+	progress := trans.Output()
+
+	go func() {
+		for p := range progress {
+			if progressCallback == nil {
+				continue
+			}
+
+			mergeProgressMs := ffmpeg.ParseDurationToMs(p.CurrentTime)
+			if mergeProgressMs > totalDurationMs {
+				mergeProgressMs = totalDurationMs
+			}
+			progressCallback(totalDurationMs + mergeProgressMs)
+		}
+	}()
+
+	err = <-done
+	if err == nil && progressCallback != nil {
+		progressCallback(totalDurationMs * 2)
+	}
+	return err
 }

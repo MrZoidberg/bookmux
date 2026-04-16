@@ -73,10 +73,12 @@ func RunInteractiveMode(cfg *model.BuildConfig) (bool, error) {
 
 	// Pre-fill metadata from the first track
 	fmt.Printf("Probing first track for metadata: %s\n", tracks[0].Path)
-	_, sourceBitrate, meta, probeErr := ffmpeg.GetAudioInfo(tracks[0].Path)
+	info, probeErr := ffmpeg.GetAudioInfo(tracks[0].Path)
 	if probeErr != nil {
 		fmt.Printf("Warning: Failed to probe meta from first track: %v\n", probeErr)
 	} else {
+		sourceBitrate := info.Bitrate
+		meta := info.Metadata
 		if meta.Title != "" {
 			fmt.Printf("Found title: %s\n", meta.Title)
 			if cfg.Title == "" {

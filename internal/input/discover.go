@@ -11,7 +11,16 @@ import (
 	"bookmux/internal/model"
 )
 
-// DiscoverFiles finds MP3 files in the given path.
+func isSupportedAudioFile(path string) bool {
+	switch strings.ToLower(filepath.Ext(path)) {
+	case ".mp3", ".m4a":
+		return true
+	default:
+		return false
+	}
+}
+
+// DiscoverFiles finds supported audio files in the given path.
 func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
 	if strings.Contains(cfg.InputPath, ",") {
 		return parseFileList(cfg.InputPath)
@@ -23,8 +32,8 @@ func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
 	}
 
 	if !info.IsDir() {
-		if strings.ToLower(filepath.Ext(cfg.InputPath)) != ".mp3" {
-			return nil, fmt.Errorf("input file is not an mp3")
+		if !isSupportedAudioFile(cfg.InputPath) {
+			return nil, fmt.Errorf("input file must be an .mp3 or .m4a")
 		}
 		return []model.InputTrack{{
 			Path:     cfg.InputPath,
@@ -41,11 +50,11 @@ func DiscoverFiles(cfg *model.BuildConfig) ([]model.InputTrack, error) {
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to scan for mp3s: %w", err)
+		return nil, fmt.Errorf("failed to scan for audio files: %w", err)
 	}
 
 	if len(tracks) == 0 {
-		return nil, fmt.Errorf("no mp3 files found in %s", cfg.InputPath)
+		return nil, fmt.Errorf("no supported audio files found in %s", cfg.InputPath)
 	}
 
 	if cfg.Verbose {
@@ -59,7 +68,7 @@ func parseFileList(input string) ([]model.InputTrack, error) {
 	var tracks []model.InputTrack
 	for f := range strings.SplitSeq(input, ",") {
 		f = strings.TrimSpace(f)
-		if strings.ToLower(filepath.Ext(f)) == ".mp3" {
+		if isSupportedAudioFile(f) {
 			if info, err := os.Stat(f); err == nil {
 				tracks = append(tracks, model.InputTrack{
 					Path:     f,
@@ -70,7 +79,7 @@ func parseFileList(input string) ([]model.InputTrack, error) {
 		}
 	}
 	if len(tracks) == 0 {
-		return nil, fmt.Errorf("no valid mp3 files found in input list")
+		return nil, fmt.Errorf("no valid audio files found in input list")
 	}
 	return tracks, nil
 }
@@ -81,7 +90,7 @@ func scanRecursive(root string) ([]model.InputTrack, error) {
 		if err != nil {
 			return err
 		}
-		if !d.IsDir() && strings.ToLower(filepath.Ext(path)) == ".mp3" {
+		if !d.IsDir() && isSupportedAudioFile(path) {
 			if info, err := d.Info(); err == nil {
 				tracks = append(tracks, model.InputTrack{
 					Path:     path,
@@ -102,7 +111,7 @@ func scanFlat(root string) ([]model.InputTrack, error) {
 		return nil, err
 	}
 	for _, e := range entries {
-		if !e.IsDir() && strings.ToLower(filepath.Ext(e.Name())) == ".mp3" {
+		if !e.IsDir() && isSupportedAudioFile(e.Name()) {
 			if info, err := e.Info(); err == nil {
 				path := filepath.Join(root, e.Name())
 				tracks = append(tracks, model.InputTrack{

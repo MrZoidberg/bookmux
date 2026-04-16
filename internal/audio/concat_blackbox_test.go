@@ -95,8 +95,8 @@ EOF
 	if len(progressValues) == 0 {
 		t.Fatal("progress callback was not invoked")
 	}
-	if progressValues[len(progressValues)-1] != 2000 {
-		t.Fatalf("final progress = %d, want 2000", progressValues[len(progressValues)-1])
+	if progressValues[len(progressValues)-1] != 4000 {
+		t.Fatalf("final progress = %d, want 4000", progressValues[len(progressValues)-1])
 	}
 	if cfg.CoverPath == "" {
 		t.Fatal("expected cover path to be auto-populated")

@@ -22,19 +22,19 @@ EOF
 	}()
 	FFprobePath = ffprobe
 
-	durationMs, bitrate, meta, err := GetAudioInfo("input.m4a")
+	info, err := GetAudioInfo("input.m4a")
 	if err != nil {
 		t.Fatalf("GetAudioInfo returned error: %v", err)
 	}
 
-	if durationMs != 12345 {
-		t.Fatalf("durationMs = %d, want 12345", durationMs)
+	if info.DurationMs != 12345 {
+		t.Fatalf("durationMs = %d, want 12345", info.DurationMs)
 	}
-	if bitrate != "64k" {
-		t.Fatalf("bitrate = %q, want %q", bitrate, "64k")
+	if info.Bitrate != "64k" {
+		t.Fatalf("bitrate = %q, want %q", info.Bitrate, "64k")
 	}
-	if meta.Title != "Book Title" || meta.Author != "Primary Author" || meta.Album != "Book Album" || !meta.HasCover {
-		t.Fatalf("metadata = %+v", meta)
+	if info.Metadata.Title != "Book Title" || info.Metadata.Author != "Primary Author" || info.Metadata.Album != "Book Album" || !info.Metadata.HasCover {
+		t.Fatalf("metadata = %+v", info.Metadata)
 	}
 }
 
@@ -48,7 +48,7 @@ func TestGetAudioInfoInvalidJSON(t *testing.T) {
 	}()
 	FFprobePath = ffprobe
 
-	if _, _, _, err := GetAudioInfo("input.m4a"); err == nil {
+	if _, err := GetAudioInfo("input.m4a"); err == nil {
 		t.Fatal("GetAudioInfo returned nil error for invalid JSON")
 	}
 }

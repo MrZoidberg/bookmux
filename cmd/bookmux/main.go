@@ -45,7 +45,7 @@ type progressMsg int64
 
 func initialModel(cfg *model.BuildConfig) modelTUI {
 	return modelTUI{
-		config:   cfg,
+		config:    cfg,
 		status:    "Starting...",
 		progress:  progress.New(progress.WithDefaultGradient()),
 		startTime: time.Now(),
@@ -116,12 +116,12 @@ func (m modelTUI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, discoverCmd(m.config)
 		}
 		if m.status == "Probing complete. Merging..." {
-			// Calculate total duration for progress bar
+			// Progress accounts for both preprocessing and the final merge pass.
 			var total int64
 			for _, t := range m.tracks {
 				total += t.DurationMs
 			}
-			m.totalDuration = total
+			m.totalDuration = total * 2
 			return m, concatCmd(m.config, m.tracks, p)
 		}
 	case []model.InputTrack:
@@ -173,7 +173,7 @@ func (m modelTUI) View() string {
 		errStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("204")).
 			Bold(true).
-			Width(width - 4).
+			Width(width-4).
 			Padding(0, 2)
 
 		return fmt.Sprintf("\n%s\n\nPress q to quit.\n", errStyle.Render(fmt.Sprintf("Error: %v", m.err)))
@@ -260,12 +260,15 @@ func run() error {
 		defer logFile.Close()
 		log.SetOutput(logFile)
 		log.Println("--- BookMux Session Start ---")
+	} else if cfg.Verbose {
+		log.SetOutput(os.Stderr)
 	} else {
 		log.SetOutput(io.Discard)
 	}
 
-	// Use TUI progress bar if in a terminal
-	if isatty.IsTerminal(os.Stdout.Fd()) {
+	// Verbose mode writes detailed logs; keep terminal output plain rather than
+	// interleaving logs with the TUI renderer.
+	if isatty.IsTerminal(os.Stdout.Fd()) && !cfg.Verbose {
 		m := initialModel(cfg)
 		p = tea.NewProgram(m)
 		if _, err := p.Run(); err != nil {

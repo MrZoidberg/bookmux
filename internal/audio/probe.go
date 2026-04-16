@@ -26,15 +26,32 @@ func ProbeTracks(tracks []model.InputTrack, verbose bool) (model.BookMetadata, e
 				if verbose {
 					log.Printf("[Worker %d] Probing track %d/%d: %s", workerID, idx+1, len(tracks), tracks[idx].Path)
 				}
-				duration, bitrate, meta, err := ffmpeg.GetAudioInfo(tracks[idx].Path)
+				info, err := ffmpeg.GetAudioInfo(tracks[idx].Path)
 				if err != nil {
 					errChan <- fmt.Errorf("failed to probe %s: %w", tracks[idx].Path, err)
 					return
 				}
-				tracks[idx].DurationMs = duration
-				tracks[idx].Bitrate = bitrate
-				if meta.Title != "" {
-					tracks[idx].Chapter = meta.Title
+				tracks[idx].DurationMs = info.DurationMs
+				tracks[idx].Bitrate = info.Bitrate
+				tracks[idx].Codec = info.Codec
+				tracks[idx].SampleRate = info.SampleRate
+				tracks[idx].ChannelMode = info.ChannelMode
+				if info.Metadata.Title != "" {
+					tracks[idx].Chapter = info.Metadata.Title
+				}
+				if verbose {
+					log.Printf(
+						"[Worker %d] Track %d/%d info: codec=%s bitrate=%s sample_rate=%s channels=%s duration=%s size=%s",
+						workerID,
+						idx+1,
+						len(tracks),
+						fallback(tracks[idx].Codec, "unknown"),
+						fallback(tracks[idx].Bitrate, "unknown"),
+						formatSampleRate(tracks[idx].SampleRate),
+						fallback(tracks[idx].ChannelMode, "unknown"),
+						FormatDuration(tracks[idx].DurationMs),
+						FormatBytes(tracks[idx].Size),
+					)
 				}
 			}
 		}(i)
@@ -53,6 +70,6 @@ func ProbeTracks(tracks []model.InputTrack, verbose bool) (model.BookMetadata, e
 	}
 
 	// For convenience, return the metadata of the first track
-	_, _, meta, _ := ffmpeg.GetAudioInfo(tracks[0].Path)
-	return meta, nil
+	info, _ := ffmpeg.GetAudioInfo(tracks[0].Path)
+	return info.Metadata, nil
 }

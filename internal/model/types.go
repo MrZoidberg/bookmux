@@ -2,12 +2,15 @@ package model
 
 // InputTrack represents a single audio file to be merged.
 type InputTrack struct {
-	Path       string
-	BaseName   string
-	Chapter    string
-	DurationMs int64
-	Bitrate    string
-	Size       int64
+	Path        string
+	BaseName    string
+	Chapter     string
+	DurationMs  int64
+	Bitrate     string
+	Codec       string
+	SampleRate  int
+	ChannelMode string
+	Size        int64
 }
 
 // Chapter represents a chapter's metadata in the resulting audiobook.

@@ -6,3 +6,5 @@ bookmux.log
 /dist/
 .bin/
 *.txt
+coverage
+coverage.out

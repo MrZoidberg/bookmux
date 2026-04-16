@@ -4,6 +4,9 @@ build:
 test:
 	go test ./...
 
+coverage:
+	go test -covermode=atomic -coverprofile=coverage.out ./...
+
 lint:
 	golangci-lint run
 
